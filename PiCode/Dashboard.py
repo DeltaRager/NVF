@@ -9,7 +9,22 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QSizePolicy
+from time import sleep
+import sys
 
+class WorkerThread(QtCore.QObject):
+    signalExample = QtCore.pyqtSignal(int)
+ 
+    def __init__(self):
+        super().__init__()
+ 
+    @QtCore.pyqtSlot()
+    def run(self):
+        count = 0
+        while True:
+            self.signalExample.emit(count)
+            count += 1
+            sleep(1)
 
 class Ui_New_Driver_Dashboard(object):
     def setupUi(self, New_Driver_Dashboard):
@@ -152,7 +167,7 @@ class Ui_New_Driver_Dashboard(object):
         self.rpm.setLineWidth(0)
         self.rpm.setDigitCount(3)
         self.rpm.setProperty("value", 20.0)
-        self.rpm.setProperty("intValue", 20)
+        # self.rpm.setProperty("intValue", 20)
         self.rpm.setObjectName("rpm")
         self.acc_unit = QtWidgets.QLabel(self.center_left)
         self.acc_unit.setGeometry(QtCore.QRect(120, 53, 46, 32))
@@ -423,8 +438,15 @@ class Ui_New_Driver_Dashboard(object):
         self.speed_label.setFont(font)
         self.speed_label.setObjectName("speed_label")
 
+        self.worker = WorkerThread()
+        self.workerThread = QtCore.QThread()
+        self.workerThread.started.connect(self.worker.run)
+        self.worker.signalExample.connect(self.signalExample) 
+        self.worker.moveToThread(self.workerThread)
+        self.workerThread.start()
+
         try:
-            spd = open('C:\\Users\\Mahek Isak Merchant\\Desktop\\Mahek\\University\\Year 2\\Nanyang Venture Formula 1\\PyQt5\\speed.txt')
+            spd = open('E:\\GitReps\\NVF\\PiCode\\speed.txt')
         except:
             print('File Not Found Error')
         else:
@@ -476,6 +498,10 @@ class Ui_New_Driver_Dashboard(object):
         self.volt_unit.setText(_translate("New_Driver_Dashboard", "<html><head/><body><p>Volts</p></body></html>"))
         self.speed_unit.setText(_translate("New_Driver_Dashboard", "KM/HR"))
         self.speed_label.setText(_translate("New_Driver_Dashboard", "SPEED"))
+    
+    def signalExample(self, count):
+        self.rpm.setProperty("value", count)
+
 
 
 class Ui_Bot_Activation_Display(object):
@@ -544,6 +570,7 @@ class Ui_Bot_Activation_Display(object):
 # Change the value of bots to display the other screen
 bots = 0
 
+
 if ((__name__ == "__main__")&(bots==1)):
     import sys
     app = QtWidgets.QApplication(sys.argv)
@@ -561,4 +588,9 @@ if ((__name__ == "__main__")&(bots==0)):
     ui = Ui_New_Driver_Dashboard()
     ui.setupUi(New_Driver_Dashboard)
     New_Driver_Dashboard.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
+    # while True:
+    #     sleep(1/60)
+    # sys.exit(app.exec_())
+
+
